@@ -1,0 +1,19 @@
+{
+  "name": "server-node-notification",
+  "version": "0.0.1",
+  "description": "app to manage notification between client and talend application",
+  "dependencies": {
+    "express": "^4.15.2",
+    "socket.io": "^1.7.3"
+  },
+  "scripts": {
+    "start": "node app.js"
+  },
+  "main": "app.js",
+  "devDependencies": {},
+  "keywords": [
+    "notification"
+  ],
+  "author": "Marwa GHZAIEL",
+  "license": "ISC"
+}

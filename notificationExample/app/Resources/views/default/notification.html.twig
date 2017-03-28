@@ -1,0 +1,104 @@
+{# empty Twig template #}
+ 
+ {% extends 'base.html.twig' %}
+
+{% block body %}
+    <div id="wrapper">
+        <div id="container">
+            <div id="login">
+                <h1><span>Welcome to</span> notification</h1>
+                <div>
+                    <form id="authenticate" action="">
+                        <input id="username" autocomplete="off" placeholder="enter your username" /><button>Send</button>
+                    </form>
+                </div>
+            </div>
+            <div id="welcome" style="display:none">
+                <h1><span>Welcome to</span> notification</h1>
+                <div>
+                    <div style="float:left; width:30%">
+                        <ul id="connnectedUser">
+                            
+                        </ul>
+                    </div>
+                   <div style="float:left; width:30%">
+                        <ul id="messages"></ul>
+                        <form id="chat" action="">
+                          <input id="m" autocomplete="off" /><button>Send</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+{% endblock %}
+{% block javascripts %}
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script>
+        jQuery(document).ready(function () {
+            var socket = io('http://localhost:3000');
+            var user = {};
+            var to = {};
+            
+            user.username = "";
+            user.id = "";
+            user.connected = false;
+            
+            to = 'group';
+            
+            var connectedUser = [];
+            
+            jQuery('form#authenticate').submit(function(){
+                socket.emit('ready', jQuery('#username').val());
+                jQuery('#username').val('');
+                jQuery('#login').css('display', 'none');
+                jQuery('#welcome').css('display', 'inline');
+                return false;
+            });
+            
+            jQuery('form#chat').submit(function(){
+              if(to === 'group'){
+                  socket.emit('chat message', jQuery('#m').val());
+              }else{
+                  socket.emit('private chat message to', {'to' : to, 'msg': jQuery('#m').val()});
+              }
+              jQuery('#messages').append('<li>'+ jQuery('#m').val() +'</li>');
+              jQuery('#m').val('');
+              return false;
+            });
+            socket.on('ready back', function (data) {
+                user.username = data.user.username;
+                user.connected = true;
+                user.id = data.user.id;
+            });
+            
+            socket.on('conncted user', function (data) {
+                connectedUser = data.users;
+                jQuery("#connnectedUser").empty();
+                jQuery("#connnectedUser").append('<li id=group>group</li>');
+                jQuery.each(connectedUser, function(key, value){
+                    if(value.username !== user.username){
+                       jQuery("#connnectedUser").append('<li id='+ value.id + '>' + value.username + '</li>');
+                    }
+                });
+                jQuery("#connnectedUser li").click(function(){
+                    to = $(this).attr('id');
+                });
+            });
+
+            socket.on('chat received', function(msg){
+                jQuery('#messages').append('<li>'+ msg.msg+'</li>');
+            });
+            socket.on('private chat received', function(data){
+                jQuery('#messages').append('<li>'+data.to + ": " + data.msg+'</li>');
+            });
+            
+            
+            
+            
+        });
+    </script>
+{% endblock %}
+
